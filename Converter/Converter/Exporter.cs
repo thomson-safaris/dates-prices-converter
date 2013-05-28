@@ -17,6 +17,7 @@ namespace Converter
         private string extra_excluded_trips_for_status = "";
         private string last_included_trip = "";
         private string last_excluded_trip = "";
+        DataTable exporter_table = new DataTable();
 
 
         public Exporter(string path)
@@ -45,13 +46,14 @@ namespace Converter
         public bool ToJson(string path, DataTable table)
         {
             DateTime dt = new DateTime();
+            exporter_table = table;
 
             // add a date format column to sort by date
-            DataColumn dateForSort = table.Columns.Add("DateForSort", typeof(DateTime));
+            DataColumn dateForSort = exporter_table.Columns.Add("DateForSort", typeof(DateTime));
             dateForSort.AllowDBNull = true;
 
             // put the dates from the start date into it
-            foreach (DataRow rowSort in table.Rows)
+            foreach (DataRow rowSort in exporter_table.Rows)
             {
                 if (rowSort["TripCode"].ToString().Length > 3)
                 {
@@ -64,30 +66,30 @@ namespace Converter
                     }
                 }
             }
-            DataView dv = table.DefaultView;
+            DataView dv = exporter_table.DefaultView;
             dv.Sort = "DateForSort ASC";
-            table = dv.ToTable();
+            exporter_table = dv.ToTable();
 
             try
             {
-                process_table(table, "KILI UM", 0, 0, path + @"\kilium_regular.txt");
-                process_table(table, "KILI UM", 5, 2990, path + @"\kilium_five.txt");
-                process_table(table, "KILI UM", 7, 3990, path + @"\kilium_seven.txt");
-                process_table(table, "KILI LE", 0, 0, path + @"\kilile_regular.txt");
-                process_table(table, "KILI LE", 5, 2990, path + @"\kilile_five.txt");
-                process_table(table, "KILI LE", 7, 3990, path + @"\kilile_seven.txt");
-                process_table(table, "KILI GT", 0, 0, path + @"\kiligt_regular.txt");
-                process_table(table, "KILI GT", 5, 2990, path + @"\kiligt_five.txt");
-                process_table(table, "KILI GT", 7, 3990, path + @"\kiligt_seven.txt");
-                process_table(table, "SIG", 0, 0, path + @"\thomson_signature.txt");
-                process_table(table, "TWS", 0, 0, path + @"\tanzania_wildlife.txt");
-                process_table(table, "TTS", 0, 0, path + @"\trekking_safari.txt");
-                process_table(table, "CULT", 0, 0, path + @"\wildlife_cultural.txt");
-                process_table(table, "N&S", 0, 0, path + @"\north_and_south.txt");
-                process_table(table, "BIGGS", 0, 0, path + @"\photography.txt");
-                process_table(table, "TFS", 0, 0, path + @"\family.txt");
-                process_table(table, "SFS", 0, 0, path + @"\short_family.txt");
-                process_table(table, "TAS", 0, 0, path + @"\active_teens.txt");
+                process_table("KILI UM", 0, 0, path + @"\kilium_regular.txt");
+                process_table("KILI UM", 5, 2990, path + @"\kilium_five.txt");
+                process_table("KILI UM", 7, 3990, path + @"\kilium_seven.txt");
+                process_table("KILI LE", 0, 0, path + @"\kilile_regular.txt");
+                process_table("KILI LE", 5, 2990, path + @"\kilile_five.txt");
+                process_table("KILI LE", 7, 3990, path + @"\kilile_seven.txt");
+                process_table("KILI GT", 0, 0, path + @"\kiligt_regular.txt");
+                process_table("KILI GT", 5, 2990, path + @"\kiligt_five.txt");
+                process_table("KILI GT", 7, 3990, path + @"\kiligt_seven.txt");
+                process_table("SIG", 0, 0, path + @"\thomson_signature.txt");
+                process_table("TWS", 0, 0, path + @"\tanzania_wildlife.txt");
+                process_table("TTS", 0, 0, path + @"\trekking_safari.txt");
+                process_table("CULT", 0, 0, path + @"\wildlife_cultural.txt");
+                process_table("N&S", 0, 0, path + @"\north_and_south.txt");
+                process_table("BIGGS", 0, 0, path + @"\photography.txt");
+                process_table("TFS", 0, 0, path + @"\family.txt");
+                process_table("SFS", 0, 0, path + @"\short_family.txt");
+                process_table("TAS", 0, 0, path + @"\active_teens.txt");
                 return true;
             }
             catch (Exception crap)
@@ -95,6 +97,44 @@ namespace Converter
                 Console.WriteLine("Json export failed: " + crap);
                 return false;
             }
+        }
+
+
+        private void process_table(string flag, int daysToAdd, int priceToAdd, string path)
+        {
+            string start_date, end_date, adult_price, teen_price, child_price, notes;
+            int soldOut;
+            int i = 0;
+            StringBuilder sb = new StringBuilder("{");
+            foreach (DataRow row in exporter_table.Select(getFilter(flag), "DateForSort ASC"))
+            {
+                include_trip        = true;
+                start_date          = String.Format("{0:M/d/yyyy}", get_start_date(row));
+                end_date            = String.Format("{0:M/d/yyyy}", get_end_date(row, daysToAdd));
+                adult_price         = get_adult_price(row, priceToAdd);
+                teen_price          = get_teen_price(row, priceToAdd);
+                child_price         = get_child_price(row, priceToAdd);
+                notes               = create_notes(row, child_price, daysToAdd);
+                soldOut             = get_soldout_status(notes);
+
+                if (include_trip)
+                {
+                    sb.Append(@"""" + i + @""":{");
+                    sb.Append(@"""depart_us"":"""       + start_date + @""",");
+                    sb.Append(@"""return_us"":"""       + end_date + @""",");
+                    sb.Append(@"""notes"":"""           + notes + @""",");
+                    sb.Append(@"""adult_price"":"""     + adult_price + @""",");
+                    sb.Append(@"""teen_price"":"""      + teen_price + @""",");
+                    sb.Append(@"""child_price"":"""     + child_price + @""",");
+                    sb.Append(@"""soldout"":"""         + soldOut.ToString() + @"""");
+                    sb.Append(@"},");
+                    i++; // increasing count required for json format
+                }
+            }
+            // remove the last comma and add the final closing bracket
+            sb.Remove(sb.Length - 1, 1).Append("}");
+
+            JsonWriter(path, sb);
         }
 
 
@@ -132,63 +172,87 @@ namespace Converter
         }
 
 
-        private string create_notes(DataRow row, string custom_note)
+        private string create_notes(DataRow row, string child_price, int days_to_add)
         {
             try
             {
-                string note = "";
-                string links_note = "";
-                double availableSpace = Convert.ToDouble(row["availableSpace"]);
-                double numPax = Convert.ToDouble(row["numPax"]);
-                double number_of_pax = Convert.ToDouble(row["number_of_pax"]);
+                string note             = "";
+                string custom_note      = "";
+                string links_note       = "";
+                string trip_code        = row["TripCode"].ToString();
+                string extension_id     = trip_code.Substring(trip_code.Length - 3, 3);
+                double availableSpace   = Convert.ToDouble(row["availableSpace"]);
+                double numPax           = Convert.ToDouble(row["numPax"]);
+                double number_of_pax    = Convert.ToDouble(row["number_of_pax"]);
+
+                // Add custom teen trip text
+                if (((trip_code.Substring(0, 3) == "TFS") || (trip_code.Substring(0, 3) == "SFS")) && (child_price == ""))
+                {
+                    custom_note += "Teen Trip";
+                }
 
                 // check kili availability first
-                if ((row["TripCode"].ToString().Substring(0, 7) == "KILI LE") || (row["TripCode"].ToString().Substring(0, 7) == "KILI UM"))
+                if (trip_code.Substring(0, 5) == "KILI ")
                 {
-                    if (number_of_pax >= 24)
+
+                    if ((trip_code.Substring(0, 7) == "KILI LE") || (trip_code.Substring(0, 7) == "KILI UM"))
                     {
-                        note = @"Sold out - <a href='/contact-us' title='800-235-0289'>call</a> for new options";
+                        if (number_of_pax >= 24)
+                        {
+                            note += @"Sold out - <a href='/contact-us' title='800-235-0289'>call</a> for new options";
+                        }
+                        else if (number_of_pax >= 6)   // kili um/le limit
+                        {
+                            note += "Limited Availability";
+                        }
                     }
-                    else if (number_of_pax >= 6)   // kili um/le limit
+                    else if (trip_code.Substring(0, 7) == "KILI GT")
                     {
-                        note = "Limited Availability";
+                        if (number_of_pax >= 8)
+                        {
+                            note += @"Sold out - <a href='/contact-us' title='800-235-0289'>call</a> for new options";
+                        }
+                        else if (number_of_pax >= 4)   // kili gt limit
+                        {
+                            note += "Limited Availability";
+                        }
                     }
-                }
-                else if (row["TripCode"].ToString().Substring(0, 7) == "KILI GT")
-                {
-                    if (number_of_pax >= 8)
+                    if ((days_to_add > 0) && (note == "")) // check for extensions - but they're irrelevant if we already have a status for this kili
                     {
-                        note = @"Sold out - <a href='/contact-us' title='800-235-0289'>call</a> for new options";
-                    }
-                    else if (number_of_pax >= 4)   // kili gt limit
-                    {
-                        note = "Limited Availability";
+                        string extension_flag = "";
+                        if (days_to_add == 5) { extension_flag = "KILIW "; } else { extension_flag = "KILIWC"; }
+                        foreach (DataRow r in exporter_table.Select("TripCode LIKE '" + extension_flag + "*' AND TripType = 'Scheduled'", "DateForSort ASC"))
+                        {
+                            string ext_trip_code = r["TripCode"].ToString();
+                            if ((extension_id == ext_trip_code.Substring(ext_trip_code.Length - 3, 3)) && (extension_flag == ext_trip_code.Substring(0,extension_flag.Length)))
+                            {
+                                double ext_availableSpace   = Convert.ToDouble(r["availableSpace"]);
+                                double ext_numPax           = Convert.ToDouble(r["numPax"]);
+                                if ((ext_availableSpace <= 0) || (ext_numPax / (ext_numPax + ext_availableSpace) >= 0.4))
+                                {
+                                    note += "Limited Availability";
+                                }
+                            }
+                        }
                     }
                 }
                 else // then check everything else
                 {
                     if (availableSpace <= 0)
                     {
-                        note = "Sold Out";
+                        note += "Sold Out";
                     }
                     else if (numPax / (numPax + availableSpace) >= 0.4)   // limited availability if greater than 40% booked
                     {
-                        note = "Limited Availability";
+                        note += "Limited Availability";
                     }
                 }
 
-                // for custom notes
-                if ((custom_note != "") && (note != ""))
-                {
-                    note = custom_note + ", " + note;
-                }
-                else if (custom_note != "")
-                {
-                    note = custom_note;
-                }
+                // concatenate...
+                if ((note != "") && (custom_note != "")) { note = custom_note + ", " + note; } else if (custom_note != "") { note = custom_note; }   
 
-                // Biggs itineraries only
-                if (row["TripCode"].ToString().Substring(0, 5) == "BIGGS")
+                // add photo links
+                if (trip_code.Substring(0, 5) == "BIGGS")
                 {
                     links_note = get_photo_safaris_links(row);
                     if ((note != "") && (links_note != ""))
@@ -314,7 +378,9 @@ namespace Converter
 
 
 
-        private void process_table(DataTable table, string flag, int daysToAdd, int priceToAdd, string path)
+
+
+        private string getFilter(string flag)
         {
             string filter;
             if (flag == "BIGGS")
@@ -324,69 +390,13 @@ namespace Converter
             else
             {
                 filter = "TripCode LIKE '" + flag + "*' AND TripType = 'Scheduled'";
-            } 
+            }
             filter = check_for_trips_to_exclude(filter, flag);
             filter = check_for_extra_trips_to_include(filter, flag);
-            
-
-            string sortOrder = "DateForSort ASC";
-            StringBuilder sb = new StringBuilder();
-            sb.Append("{");
-            int i = 0;
-            DataRow[] foundRows = table.Select(filter, sortOrder);
-
-            foreach (DataRow row in foundRows)
-            {
-                include_trip = true;
-                DateTime start_date = get_start_date(row);
-                DateTime end_date = get_end_date(row, daysToAdd);
-                string notes;
-                string adult_price = get_adult_price(row, priceToAdd);
-                string teen_price = get_teen_price(row, priceToAdd);
-                string child_price = get_child_price(row, priceToAdd);
-                if (((flag == "TFS") || (flag == "SFS")) && (child_price == ""))
-                {
-                    notes = create_notes(row, "Teen Trip");
-                }
-                else
-                {
-                    notes = create_notes(row, "");
-                }
-                int soldOut = get_soldout_status(notes);
-
-                if (include_trip)
-                {
-                    sb.Append(@"""" + i + @""":{""depart_us"":""");
-                    sb.Append(String.Format("{0:M/d/yyyy}", start_date) + @""",");
-                    sb.Append(@"""return_us"":""");
-                    sb.Append(String.Format("{0:M/d/yyyy}", end_date) + @""",");
-                    sb.Append(@"""notes"":""");
-                    sb.Append(notes);
-                    sb.Append(@""",");
-                    sb.Append(@"""adult_price"":""" + adult_price + @""",");
-                    sb.Append(@"""teen_price"":""" + teen_price + @""",");
-                    sb.Append(@"""child_price"":""" + child_price + @""",");
-                    sb.Append(@"""soldout"":""" + soldOut.ToString() + @"""");
-                    sb.Append(@"},");
-                    i++; // increment i because it shows up in output!
-                }
-                
-            }
-
-            // remove the last comma
-            sb.Remove(sb.Length - 1, 1);
-            // add the final closing bracket
-            sb.Append(@"}");
-
-            JsonWriter(path, sb);
+            return filter;
         }
 
-        /// <summary>
-        ///     Write a stringbuilder to the specified path
-        /// </summary>
-        /// <param name="path"></param>
-        /// <param name="sb"></param>
-        /// <returns></returns>
+
         public void JsonWriter(string path, StringBuilder sb)
         {
             try
@@ -400,139 +410,6 @@ namespace Converter
             {
                 Console.WriteLine("Writing to file failed: " + crap);
             }
-        }
-
-        /// <summary>
-        ///     Export the provided table to a csv file of the user's choosing
-        /// </summary>
-        /// <param name="path"></param>
-        /// <param name="table"></param>
-        /// <returns></returns>
-        public bool toCSV(DataTable table)
-        {
-            StringBuilder sb = new StringBuilder();
-            SaveFileDialog fileName = new SaveFileDialog();
-            string fileType;
-            bool successfulExport;
-
-            GetColumnHeadersForCSV(sb, table);
-            GetTableDataForCSV(sb, table);
-            fileType = "csv";
-            fileName = SaveFileAs(fileType);
-            successfulExport = WriteToMyFile(fileName, sb);
-
-            if (successfulExport) return true;
-            else return false;
-        }
-
-        /// <summary>
-        ///     WRITE TO MY FILE
-        /// </summary>
-        /// <param name="saveFileDialog1"></param>
-        /// <param name="sb"></param>
-        /// <returns>
-        ///     Returns nothing, only writes a stringbuilder to a file
-        /// </returns>
-        private bool WriteToMyFile(SaveFileDialog saveFileDialog1, StringBuilder sb)
-        {
-            Stream myStream;
-            try
-            {
-                if (saveFileDialog1.ShowDialog() == DialogResult.OK)
-                {
-                    if ((myStream = saveFileDialog1.OpenFile()) != null)
-                    {
-                        System.Text.ASCIIEncoding encoder = new ASCIIEncoding();
-                        myStream.Write(encoder.GetBytes(sb.ToString()), 0, sb.Length);
-                        myStream.Close();
-                    }
-                    else return false;
-                }
-                else return false;
-            }
-            catch (Exception crap)
-            {
-                Console.WriteLine("Export failed: " + crap);
-                return false;
-            }
-            return true;
-        }
-
-        /// <summary>
-        ///     SAVE FILE AS
-        /// </summary>
-        /// <param name="fileType"></param>
-        /// <returns>
-        ///     Returns a SaveFileDialog with the selected filename to save as
-        /// </returns>
-        private SaveFileDialog SaveFileAs(string fileType)
-        {
-            SaveFileDialog saveFileDialog1 = new SaveFileDialog();
-
-            saveFileDialog1.Filter = String.Format("All files (*.*)|*.*|{0} files (*.{0})|*.{0}",fileType);
-            saveFileDialog1.FilterIndex = 2;
-            saveFileDialog1.RestoreDirectory = true;
-
-            return saveFileDialog1;
-        }
-
-        /// <summary>
-        ///     GET COLUMN HEADERS FOR CSV    
-        /// </summary>
-        /// <param name="sb"></param>
-        /// <param name="table"></param>
-        /// <returns>
-        ///     Returns the column headers from the provided table in the provided stringbuilder
-        ///     Returns the data in CSV format
-        /// </returns>
-        private StringBuilder GetColumnHeadersForCSV(StringBuilder sb, DataTable table)
-        {
-            bool firstCol = true;
-            foreach (DataColumn c in table.Columns)
-            {
-                if (firstCol)
-                {
-                    firstCol = false;
-                    sb.Append(c.ColumnName.ToString());
-                }
-                else
-                {
-                    sb.Append(@"," + c.ColumnName.ToString());
-                }
-            }
-            sb.Append("\r\n");
-            return sb;
-        }
-
-        /// <summary>
-        ///     GET TABLE DATA FOR CSV
-        /// </summary>
-        /// <param name="sb"></param>
-        /// <param name="table"></param>
-        /// <returns>
-        ///     Returns the table data from the provided table in the provided stringbuilder
-        ///     Returns the data in CSV format
-        /// </returns>
-        private StringBuilder GetTableDataForCSV(StringBuilder sb, DataTable table)
-        {
-            foreach (DataRow r in table.Rows)
-            {
-                bool firstColumn = true;
-                foreach (DataColumn c in table.Columns)
-                {
-                    if (firstColumn)
-                    {
-                        firstColumn = false;
-                        sb.Append(r[c].ToString());
-                    }
-                    else
-                    {
-                        sb.Append(@"," + r[c].ToString());
-                    }
-                }
-                sb.Append("\r\n");
-            }
-            return sb;
         }
 
 
