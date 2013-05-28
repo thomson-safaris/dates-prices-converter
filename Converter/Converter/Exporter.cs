@@ -143,22 +143,22 @@ namespace Converter
                 double number_of_pax = Convert.ToDouble(row["number_of_pax"]);
 
                 // check kili availability first
-                if ((row["TripCode"].ToString().Substring(0, 5) == "KILI LE") || (row["TripCode"].ToString().Substring(0, 5) == "KILI UM"))
+                if ((row["TripCode"].ToString().Substring(0, 7) == "KILI LE") || (row["TripCode"].ToString().Substring(0, 7) == "KILI UM"))
                 {
                     if (number_of_pax >= 24)
                     {
-                        note = "Sold Out";
+                        note = @"Sold out - <a href='/contact-us' title='800-235-0289'>call</a> for new options";
                     }
                     else if (number_of_pax >= 6)   // kili um/le limit
                     {
                         note = "Limited Availability";
                     }
                 }
-                else if (row["TripCode"].ToString().Substring(0, 5) == "KILI GT")
+                else if (row["TripCode"].ToString().Substring(0, 7) == "KILI GT")
                 {
                     if (number_of_pax >= 8)
                     {
-                        note = "Sold Out";
+                        note = @"Sold out - <a href='/contact-us' title='800-235-0289'>call</a> for new options";
                     }
                     else if (number_of_pax >= 4)   // kili gt limit
                     {
@@ -244,8 +244,11 @@ namespace Converter
 
         private int get_soldout_status(string note)
         {
-            if (note == "Sold Out") { return 1; }
-            else { return 0; }
+            if (note.Length >= 8)
+            {
+                if (note.Substring(0, 8).ToLower() == "sold out") { return 1; }
+            }
+            return 0;
         }
 
 
