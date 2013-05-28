@@ -18,18 +18,13 @@ namespace Converter
         private string last_included_trip = "";
         private string last_excluded_trip = "";
 
-        /// <summary>
-        ///     Default constructor for Exporter class
-        /// </summary>
+
         public Exporter(string path)
         {
             configuration_path = path;
         }
 
-        /// <summary>
-        /// Get a final status report on how everything ran
-        /// </summary>
-        /// <returns></returns>
+
         public string get_final_status()
         {
             string status = "";
@@ -46,16 +41,7 @@ namespace Converter
             return status;
         }
 
-        /// <summary>
-        ///     Method to take a table and write it to a JSON file
-        ///     Specifically designed for new Thomson Safaris website prices and dates
-        ///     
-        ///     Note that there is code available to handle teen and child prices if provided or null
-        ///     but the current (as of 11/21/12) website implementation does not format these properly
-        /// </summary>
-        /// <param name="path"></param>
-        /// <param name="table"></param>
-        /// <returns></returns>
+
         public bool ToJson(string path, DataTable table)
         {
             DateTime dt = new DateTime();
@@ -111,13 +97,7 @@ namespace Converter
             }
         }
 
-        /// <summary>
-        ///     Get the start date for the trip (have to adjust by 1 day)
-        ///     
-        ///     If the date does not convert, do not include the trip (change the include_trip flag)
-        /// </summary>
-        /// <param name="row"></param>
-        /// <returns></returns>
+
         private DateTime get_start_date(DataRow row)
         {
             DateTime start_date = new DateTime();
@@ -134,14 +114,7 @@ namespace Converter
             return start_date;
         }
 
-        /// <summary>
-        ///     Get the end date (have to adjust by one day in the other direction
-        ///     
-        ///     If the date does not convert, do not include the trip (change the include_trip flag)
-        /// </summary>
-        /// <param name="row"></param>
-        /// <param name="daysToAdd"></param>
-        /// <returns></returns>
+
         private DateTime get_end_date(DataRow row, int daysToAdd)
         {
             DateTime end_date = new DateTime();
@@ -158,13 +131,7 @@ namespace Converter
             return end_date;
         }
 
-        /// <summary>
-        ///     Decide what note to include
-        ///     
-        ///     If conversion fails, do not include this trip
-        /// </summary>
-        /// <param name="row"></param>
-        /// <returns></returns>
+
         private string create_notes(DataRow row, string custom_note)
         {
             try
@@ -173,13 +140,41 @@ namespace Converter
                 string links_note = "";
                 double availableSpace = Convert.ToDouble(row["availableSpace"]);
                 double numPax = Convert.ToDouble(row["numPax"]);
-                if (availableSpace <= 0)    // not ==0 because this is sometimes negative! or... it used to be, anyway. ==0 should work with rooms but <=0 is safer.
+                double number_of_pax = Convert.ToDouble(row["number_of_pax"]);
+
+                // check kili availability first
+                if ((row["TripCode"].ToString().Substring(0, 5) == "KILI LE") || (row["TripCode"].ToString().Substring(0, 5) == "KILI UM"))
                 {
-                    note = "Sold Out";
+                    if (number_of_pax >= 24)
+                    {
+                        note = "Sold Out";
+                    }
+                    else if (number_of_pax >= 6)   // kili um/le limit
+                    {
+                        note = "Limited Availability";
+                    }
                 }
-                else if (numPax/(numPax + availableSpace) >= 0.4)   // limited availability if greater than 40% booked
+                else if (row["TripCode"].ToString().Substring(0, 5) == "KILI GT")
                 {
-                    note = "Limited Availability";
+                    if (number_of_pax >= 8)
+                    {
+                        note = "Sold Out";
+                    }
+                    else if (number_of_pax >= 4)   // kili gt limit
+                    {
+                        note = "Limited Availability";
+                    }
+                }
+                else // then check everything else
+                {
+                    if (availableSpace <= 0)
+                    {
+                        note = "Sold Out";
+                    }
+                    else if (numPax / (numPax + availableSpace) >= 0.4)   // limited availability if greater than 40% booked
+                    {
+                        note = "Limited Availability";
+                    }
                 }
 
                 // for custom notes
@@ -195,7 +190,6 @@ namespace Converter
                 // Biggs itineraries only
                 if (row["TripCode"].ToString().Substring(0, 5) == "BIGGS")
                 {
-
                     links_note = get_photo_safaris_links(row);
                     if ((note != "") && (links_note != ""))
                     {
@@ -206,8 +200,6 @@ namespace Converter
                         note = links_note;
                     }
                 }
-
-
                 return note;
             }
             catch (Exception crap)
@@ -218,11 +210,7 @@ namespace Converter
             }
         }
 
-        /// <summary>
-        /// Get the link for itinerary files for Biggs (photography) trips
-        /// </summary>
-        /// <param name="row"></param>
-        /// <returns></returns>
+
         private string get_photo_safaris_links(DataRow row)
         {
             string html_tag_start = @"<a href='";
@@ -250,30 +238,17 @@ namespace Converter
             {
                 MessageBox.Show("Photo safari itinerary links file missing or invalid.  Please contact the developer.\n\nError message: " + crap);
             }
-
-
-
             return "";
         }
 
-        /// <summary>
-        ///     Get the soldout status based on the note
-        /// </summary>
-        /// <param name="note"></param>
-        /// <returns></returns>
+
         private int get_soldout_status(string note)
         {
             if (note == "Sold Out") { return 1; }
             else { return 0; }
         }
 
-        /// <summary>
-        ///     Get the adult price
-        ///     If conversion fails, do not include this trip
-        /// </summary>
-        /// <param name="row"></param>
-        /// <param name="priceToAdd"></param>
-        /// <returns></returns>
+
         private string get_adult_price(DataRow row, int priceToAdd)
         {
             try
@@ -289,14 +264,7 @@ namespace Converter
             }
         }
 
-        /// <summary>
-        ///     Get teen price
-        ///     
-        ///     If price conversion fails, return ""
-        /// </summary>
-        /// <param name="row"></param>
-        /// <param name="priceToAdd"></param>
-        /// <returns></returns>
+
         private string get_teen_price(DataRow row, int priceToAdd)
         {
             try
@@ -319,14 +287,6 @@ namespace Converter
             }
         }
 
-        /// <summary>
-        ///     Get child price
-        ///     
-        ///     If price conversion fails, return ""
-        /// </summary>
-        /// <param name="row"></param>
-        /// <param name="priceToAdd"></param>
-        /// <returns></returns>
         private string get_child_price(DataRow row, int priceToAdd)
         {
             try
@@ -350,14 +310,7 @@ namespace Converter
         }
 
 
-        /// <summary>
-        ///     Process the table for each trip type
-        /// </summary>
-        /// <param name="table"></param>
-        /// <param name="flag"></param>
-        /// <param name="daysToAdd"></param>
-        /// <param name="priceToAdd"></param>
-        /// <param name="path"></param>
+
         private void process_table(DataTable table, string flag, int daysToAdd, int priceToAdd, string path)
         {
             string filter;
@@ -579,12 +532,7 @@ namespace Converter
             return sb;
         }
 
-        /// <summary>
-        /// Add extra trips to be included to the filter if there are any
-        /// </summary>
-        /// <param name="filter"></param>
-        /// <param name="flag"></param>
-        /// <returns></returns>
+
         private string check_for_extra_trips_to_include(string filter, string flag)
         {
             DataTable table = new DataTable();

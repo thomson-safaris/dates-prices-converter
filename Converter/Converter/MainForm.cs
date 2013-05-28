@@ -45,25 +45,26 @@ namespace Converter
                             {
                                 parser.ColumnDelimiter = ",".ToCharArray()[0];
                                 parser.FirstRowHasHeader = true;
+
                                 table = parser.GetDataTable();
-                                table.Columns["n_SNITtrip"].ColumnName = "TripID";
-                                table.Columns["s_TripCode"].ColumnName = "TripCode";
-                                table.Columns["s_DestinationCode"].ColumnName = "Destination";
-                                table.Columns["s_TripType"].ColumnName = "TripType";
-                                table.Columns["d_Start"].ColumnName = "Start";
-                                table.Columns["d_End"].ColumnName = "End";
-                                table.Columns["d_Cancelled"].ColumnName = "Cancelled";
-                                //table.Columns["cn_CntPax"].ColumnName = "numPax"; // use rooms not spaces
-                                table.Columns["cn_CntRoomsSLD"].ColumnName = "numPax";
-                                table.Columns["PRItrpTRPorMA::n_A"].ColumnName = "adultPrice";
-                                table.Columns["PRItrpTRPorMA::n_T"].ColumnName = "teenPrice";
-                                table.Columns["PRItrpTRPorMA::n_C"].ColumnName = "childPrice";
-                                //table.Columns["cn_SpacesAvailable"].ColumnName = "availableSpace"; // use rooms not "spaces"
-                                table.Columns["cn_SumRoomsAvailable"].ColumnName = "availableSpace"; 
-                                string path = Directory.GetParent(Directory.GetCurrentDirectory().ToString()).ToString();
-                                
-                                Directory.CreateDirectory(path + "\\writefiles\\");
-                                path += "\\writefiles\\";
+
+                                table.Columns["n_SNITtrip"].ColumnName              = "TripID";
+                                table.Columns["s_TripCode"].ColumnName              = "TripCode";
+                                table.Columns["s_DestinationCode"].ColumnName       = "Destination";
+                                table.Columns["s_TripType"].ColumnName              = "TripType";
+                                table.Columns["d_Start"].ColumnName                 = "Start";
+                                table.Columns["d_End"].ColumnName                   = "End";
+                                table.Columns["d_Cancelled"].ColumnName             = "Cancelled";
+                                table.Columns["cn_CntPax"].ColumnName               = "number_of_pax";     // Kili trip "limited" at 6 pax for LE/UM, 4 pax for GT
+                                table.Columns["cn_CntRoomsSLD"].ColumnName          = "numPax";
+                                table.Columns["PRItrpTRPorMA::n_A"].ColumnName      = "adultPrice";
+                                table.Columns["PRItrpTRPorMA::n_T"].ColumnName      = "teenPrice";
+                                table.Columns["PRItrpTRPorMA::n_C"].ColumnName      = "childPrice";
+                                //table.Columns["cn_SpacesAvailable"].ColumnName    = "availableSpace";    // use rooms not "spaces"
+                                table.Columns["cn_SumRoomsAvailable"].ColumnName    = "availableSpace"; 
+
+                                string path = Directory.GetParent(Directory.GetCurrentDirectory().ToString()).ToString() + "\\writefiles\\";
+                                Directory.CreateDirectory(path);
                                 bool JSONsuccess = ex.ToJson(path, table);
 
                                 if (JSONsuccess) { MessageBox.Show("JSON export succeeded."); }
