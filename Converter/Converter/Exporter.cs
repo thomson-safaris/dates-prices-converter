@@ -115,6 +115,10 @@ namespace Converter
             int i = 0;
             StringBuilder sb_json = new StringBuilder("{");
             StringBuilder sb_csv = new StringBuilder("Depart,Return from Trek Only,Return from Trek +5-Day Safari,Return from Trek +7-Day Safari,Notes\r\n");
+            DateTime current_time = DateTime.Now;
+            var last_trip_year = current_time.Year;
+            sb_csv.Append(",," + last_trip_year.ToString() + ",,\r\n");
+
             bool thomsontreks_export = false;
             if (path.Substring(path.Length-3,3) == "csv") 
             {
@@ -161,11 +165,18 @@ namespace Converter
                 // Handle thomsontreks.com export
                 if (thomsontreks_export)
                 {
+                    if (last_trip_year < start_date_date.Year)
+                    {
+                        sb_csv.Append(",," + start_date_date.Year.ToString() + ",,\r\n");
+                    }
+
                     sb_csv.Append(start_date_date.ToString("MMM d") + ",");
                     sb_csv.Append(get_end_date(row, daysToAdd).ToString("MMM d") + ",");
                     sb_csv.Append(get_end_date(row, daysToAdd + 5).ToString("MMM d") + ","); 
                     sb_csv.Append(get_end_date(row, daysToAdd + 7).ToString("MMM d") + ",");
                     sb_csv.Append(notes + "\r\n");
+
+                    last_trip_year = start_date_date.Year;
                 }
             }
             // remove the last comma and add the final closing bracket
