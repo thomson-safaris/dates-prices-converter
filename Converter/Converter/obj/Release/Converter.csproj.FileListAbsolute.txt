@@ -7,3 +7,4 @@ C:\Users\thomas\Desktop\Dates and Prices Converter\Converter\Converter\obj\Relea
 C:\Users\thomas\Desktop\Dates and Prices Converter\Converter\Converter\obj\Release\Converter.csproj.GenerateResource.Cache
 C:\Users\thomas\Desktop\Dates and Prices Converter\Converter\Converter\obj\Release\Converter.exe
 C:\Users\thomas\Desktop\Dates and Prices Converter\Converter\Converter\obj\Release\Converter.pdb
+C:\Users\thomas\Desktop\Dates and Prices Converter\Converter\Converter\obj\Release\Converter.csprojResolveAssemblyReference.cache

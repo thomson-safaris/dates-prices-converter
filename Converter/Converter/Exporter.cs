@@ -12,6 +12,7 @@ namespace Converter
     class Exporter
     {
         bool include_trip;
+        bool sold_out;
         private string configuration_path;
         private string extra_included_trips_for_status = "";
         private string extra_excluded_trips_for_status = "";
@@ -90,6 +91,10 @@ namespace Converter
                 process_table("TFS", 0, 0, path + @"\family.txt");
                 process_table("SFS", 0, 0, path + @"\short_family.txt");
                 process_table("TAS", 0, 0, path + @"\active_teens.txt");
+                process_table("WWS", 0, 0, path + @"\women_women_women.txt");
+                process_table("KILI UM", 0, 0, path + @"\kili-umbwe.csv");
+                process_table("KILI LE", 0, 0, path + @"\kili-western.csv");
+                process_table("KILI GT", 0, 0, path + @"\kili-gt.csv");
                 return true;
             }
             catch (Exception crap)
@@ -103,38 +108,78 @@ namespace Converter
         private void process_table(string flag, int daysToAdd, int priceToAdd, string path)
         {
             string start_date, end_date, adult_price, teen_price, child_price, notes;
-            int soldOut;
+            DateTime new_season = new DateTime(2014, 4, 30, 0, 0, 0);
+            DateTime start_date_date;
+            int soldOut, start_season_comp, tempPriceToAdd;
             int i = 0;
-            StringBuilder sb = new StringBuilder("{");
+            StringBuilder sb_json = new StringBuilder("{");
+            StringBuilder sb_csv = new StringBuilder("Depart,Return from Trek Only,Return from Trek +5-Day Safari,Return from Trek +7-Day Safari,Notes\r\n");
+            bool thomsontreks_export = false;
+            if (path.Substring(path.Length-3,3) == "csv") 
+            {
+                thomsontreks_export = true;
+            }
+
             foreach (DataRow row in exporter_table.Select(getFilter(flag), "DateForSort ASC"))
             {
-                include_trip        = true;
-                start_date          = String.Format("{0:M/d/yyyy}", get_start_date(row));
+                sold_out            = false; // this will be set to true if it's sold out
+                include_trip        = true; // This flag may be set to false if the trip does not process favorably 
+                start_date_date     = get_start_date(row);
+                start_season_comp   = DateTime.Compare(new_season, start_date_date);
+                tempPriceToAdd      = priceToAdd;
+                if (flag.Length >= 4)
+                {
+                    if ((flag.Substring(0, 4) == "KILI") && (priceToAdd > 0) && (start_season_comp < 0))
+                    {
+                        tempPriceToAdd += 100;
+                    }
+                }
+
+                start_date          = String.Format("{0:M/d/yyyy}", start_date_date);
                 end_date            = String.Format("{0:M/d/yyyy}", get_end_date(row, daysToAdd));
-                adult_price         = get_adult_price(row, priceToAdd);
-                teen_price          = get_teen_price(row, priceToAdd);
-                child_price         = get_child_price(row, priceToAdd);
+                adult_price         = get_adult_price(row, tempPriceToAdd);
+                teen_price          = get_teen_price(row, tempPriceToAdd);
+                child_price         = get_child_price(row, tempPriceToAdd);
                 notes               = create_notes(row, child_price, daysToAdd);
-                soldOut             = get_soldout_status(notes);
+                soldOut             = get_soldout_status();
 
                 if (include_trip)
                 {
-                    sb.Append(@"""" + i + @""":{");
-                    sb.Append(@"""depart_us"":"""       + start_date + @""",");
-                    sb.Append(@"""return_us"":"""       + end_date + @""",");
-                    sb.Append(@"""notes"":"""           + notes + @""",");
-                    sb.Append(@"""adult_price"":"""     + adult_price + @""",");
-                    sb.Append(@"""teen_price"":"""      + teen_price + @""",");
-                    sb.Append(@"""child_price"":"""     + child_price + @""",");
-                    sb.Append(@"""soldout"":"""         + soldOut.ToString() + @"""");
-                    sb.Append(@"},");
+                    sb_json.Append(@"""" + i + @""":{");
+                    sb_json.Append(@"""depart_us"":"""       + start_date + @""",");
+                    sb_json.Append(@"""return_us"":"""       + end_date + @""",");
+                    sb_json.Append(@"""notes"":"""           + notes + @""",");
+                    sb_json.Append(@"""adult_price"":"""     + adult_price + @""",");
+                    sb_json.Append(@"""teen_price"":"""      + teen_price + @""",");
+                    sb_json.Append(@"""child_price"":"""     + child_price + @""",");
+                    sb_json.Append(@"""soldout"":"""         + soldOut.ToString() + @"""");
+                    sb_json.Append(@"},");
                     i++; // increasing count required for json format
+                }
+
+                // Handle thomsontreks.com export
+                if (thomsontreks_export)
+                {
+                    sb_csv.Append(start_date_date.ToString("MMM d") + ",");
+                    sb_csv.Append(get_end_date(row, daysToAdd).ToString("MMM d") + ",");
+                    sb_csv.Append(get_end_date(row, daysToAdd + 5).ToString("MMM d") + ","); 
+                    sb_csv.Append(get_end_date(row, daysToAdd + 7).ToString("MMM d") + ",");
+                    sb_csv.Append(notes + "\r\n");
                 }
             }
             // remove the last comma and add the final closing bracket
-            sb.Remove(sb.Length - 1, 1).Append("}");
+            sb_json.Remove(sb_json.Length - 1, 1).Append("}");
 
-            JsonWriter(path, sb);
+            // Finish handling thomsontreks.com export
+            if (thomsontreks_export)
+            {
+                // yep it works for csv too
+                JsonWriter(path, sb_csv);
+            }
+            else
+            {
+                JsonWriter(path, sb_json);
+            }
         }
 
 
@@ -241,6 +286,7 @@ namespace Converter
                     if (availableSpace <= 0)
                     {
                         note += "Sold Out";
+                        sold_out = true;
                     }
                     else if (numPax / (numPax + availableSpace) >= 0.4)   // limited availability if greater than 40% booked
                     {
@@ -251,19 +297,23 @@ namespace Converter
                 // concatenate...
                 if ((note != "") && (custom_note != "")) { note = custom_note + ", " + note; } else if (custom_note != "") { note = custom_note; }   
 
-                // add photo links
-                if (trip_code.Substring(0, 5) == "BIGGS")
+                // add custom links
+                //if (trip_code.Substring(0, 5) == "BIGGS")
+                //{
+                if (trip_code.Substring(0, 4) == "KILI")
                 {
-                    links_note = get_photo_safaris_links(row);
-                    if ((note != "") && (links_note != ""))
-                    {
-                        note += ". " + links_note;
-                    }
-                    else if (links_note != "")
-                    {
-                        note = links_note;
-                    }
+                    trip_code = trip_code.Substring(0, 14);
                 }
+                links_note = get_custom_links(trip_code);
+                if ((note != "") && (links_note != ""))
+                {
+                    note += ". " + links_note;
+                }
+                else if (links_note != "")
+                {
+                    note = links_note;
+                }
+               // }
                 return note;
             }
             catch (Exception crap)
@@ -275,11 +325,9 @@ namespace Converter
         }
 
 
-        private string get_photo_safaris_links(DataRow row)
+        private string get_custom_links(string trip_code)
         {
-            string html_tag_start = @"<a href='";
-            string html_tag_end = @"'>Itinerary</a>";
-            string path = configuration_path + "photo_links_data.csv";
+            string path = configuration_path + "custom_links.csv";
             DataTable table = new DataTable();
             try
             {
@@ -291,26 +339,26 @@ namespace Converter
                     table = parser.GetDataTable();
                     foreach (DataRow r in table.Rows)
                     {
-                        if (r["TripName"].ToString() == row["TripCode"].ToString())
+                        if (r["Trip Name"].ToString() == trip_code)
                         {
-                            return html_tag_start + r["Link"].ToString() + html_tag_end;
+                            return @"<a href='" + r["Link"].ToString() + @"'>" + r["Link Text"].ToString() + @"</a>";
                         }
                     }
                 }
             }
             catch (Exception crap)
             {
-                MessageBox.Show("Photo safari itinerary links file missing or invalid.  Please contact the developer.\n\nError message: " + crap);
+                MessageBox.Show("Custom links file missing or invalid.  Please contact the developer.\n\nError message: " + crap);
             }
             return "";
         }
 
 
-        private int get_soldout_status(string note)
+        private int get_soldout_status()
         {
-            if (note.Length >= 8)
+            if (sold_out)
             {
-                if (note.Substring(0, 8).ToLower() == "sold out") { return 1; }
+                return 1;
             }
             return 0;
         }
@@ -411,7 +459,6 @@ namespace Converter
                 Console.WriteLine("Writing to file failed: " + crap);
             }
         }
-
 
         private string check_for_extra_trips_to_include(string filter, string flag)
         {
