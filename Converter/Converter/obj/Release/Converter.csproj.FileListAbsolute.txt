@@ -8,3 +8,4 @@ C:\Users\thomas\Desktop\Dates and Prices Converter\Converter\Converter\obj\Relea
 C:\Users\thomas\Desktop\Dates and Prices Converter\Converter\Converter\obj\Release\Converter.exe
 C:\Users\thomas\Desktop\Dates and Prices Converter\Converter\Converter\obj\Release\Converter.pdb
 C:\Users\thomas\Desktop\Dates and Prices Converter\Converter\Converter\obj\Release\Converter.csprojResolveAssemblyReference.cache
+C:\Users\thomas\Desktop\Dates and Prices Converter\Converter\Converter\bin\Release\WinSCP.dll

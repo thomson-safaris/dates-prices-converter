@@ -14,14 +14,38 @@ namespace Converter
     public partial class MainForm : Form
     {
         static string configuration_path = Directory.GetParent(Directory.GetCurrentDirectory().ToString()).ToString() + "\\Configuration\\";
+        string path = Directory.GetParent(Directory.GetCurrentDirectory().ToString()).ToString() + "\\writefiles\\";
         private Exporter ex = new Exporter(configuration_path);
+        private FTPMgr ftp = new FTPMgr();
+        private string remote_treks_directory = "treks-website/wp-content/uploads/";
+
         public MainForm()
         {
             InitializeComponent();
             convert_button.Click += new System.EventHandler(toJson_Click);
+            treks_upload_button.Click += new System.EventHandler(treks_upload_Click);
         }
 
-        
+        private void treks_upload_Click(object sender, System.EventArgs e)
+        {
+            try
+            {
+                results_label.Text = "Uploading Umbwe...";
+                ftp.upload(path + "kili-umbwe.csv", remote_treks_directory + "kili-umbwe.csv");
+                results_label.Text = "Uploading Western Approach...";
+                ftp.upload(path + "kili-western.csv", remote_treks_directory + "kili-western.csv");
+                results_label.Text = "Uploading Grand Traverse...";
+                ftp.upload(path + "kili-gt.csv", remote_treks_directory + "kili-gt.csv");
+
+                results_label.Text = "Upload complete.";
+                //MessageBox.Show("Upload succeeded");
+            }
+            catch (Exception crap)
+            {
+                results_label.Text = "Upload failed:\n" + crap;
+                //MessageBox.Show("Upload failed:\n" + crap);
+            }
+        }
 
         /// <summary>
         ///     SEND TO JSON
@@ -63,12 +87,14 @@ namespace Converter
                                 //table.Columns["cn_SpacesAvailable"].ColumnName    = "availableSpace";    // use rooms not "spaces"
                                 table.Columns["cn_SumRoomsAvailable"].ColumnName    = "availableSpace"; 
 
-                                string path = Directory.GetParent(Directory.GetCurrentDirectory().ToString()).ToString() + "\\writefiles\\";
+                                //string path = Directory.GetParent(Directory.GetCurrentDirectory().ToString()).ToString() + "\\writefiles\\";
                                 Directory.CreateDirectory(path);
                                 bool JSONsuccess = ex.ToJson(path, table);
 
                                 if (JSONsuccess) { MessageBox.Show("JSON export succeeded."); }
                                 else { MessageBox.Show("JSON export failed."); }
+
+                                
                                 results_label.Text = ex.get_final_status();
                             }
                         }
@@ -84,6 +110,11 @@ namespace Converter
             {
                 Console.WriteLine("parser failed: " + crap);
             }
+        }
+
+        private void results_label_Click(object sender, EventArgs e)
+        {
+
         }
     }
 }

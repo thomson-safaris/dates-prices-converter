@@ -21,6 +21,7 @@ namespace Converter
         DataTable exporter_table = new DataTable();
 
 
+
         public Exporter(string path)
         {
             configuration_path = path;
