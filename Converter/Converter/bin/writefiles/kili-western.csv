@@ -1,7 +1,5 @@
 Depart,Return from Trek Only,Return from Trek +5-Day Safari,Return from Trek +7-Day Safari,Notes
-,,2013,,
-Sep 1,Sep 13,Sep 18,Sep 20,Limited Availability
-Sep 10,Sep 22,Sep 27,Sep 29,
+,,<span class="table-year">2013</span>,,
 Sep 18,Sep 30,Oct 5,Oct 7,Limited Availability
 Sep 26,Oct 8,Oct 13,Oct 15,
 Oct 2,Oct 14,Oct 19,Oct 21,Limited Availability
@@ -10,9 +8,9 @@ Oct 28,Nov 9,Nov 14,Nov 16,Limited Availability
 Dec 15,Dec 27,Jan 1,Jan 3,Limited Availability
 Dec 23,Jan 4,Jan 9,Jan 11,
 Dec 26,Jan 7,Jan 12,Jan 14,Limited Availability
-,,2014,,
+,,<span class="table-year">2014</span>,,
 Jan 1,Jan 13,Jan 18,Jan 20,
-Jan 8,Jan 20,Jan 25,Jan 27,Limited Availability
+Jan 8,Jan 20,Jan 25,Jan 27,Sold out - <a href='/contact-us' title='800-235-0289'>call</a> for new options
 Jan 16,Jan 28,Feb 2,Feb 4,Limited Availability
 Jan 23,Feb 4,Feb 9,Feb 11,Limited Availability
 Feb 5,Feb 17,Feb 22,Feb 24,Limited Availability
@@ -44,7 +42,7 @@ Oct 28,Nov 9,Nov 14,Nov 16,
 Dec 14,Dec 26,Dec 31,Jan 2,
 Dec 21,Jan 2,Jan 7,Jan 9,
 Dec 26,Jan 7,Jan 12,Jan 14,
-,,2015,,
+,,<span class="table-year">2015</span>,,
 Jan 1,Jan 13,Jan 18,Jan 20,
 Jan 8,Jan 20,Jan 25,Jan 27,
 Jan 17,Jan 29,Feb 3,Feb 5,

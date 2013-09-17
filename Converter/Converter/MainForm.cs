@@ -38,12 +38,10 @@ namespace Converter
                 ftp.upload(path + "kili-gt.csv", remote_treks_directory + "kili-gt.csv");
 
                 results_label.Text = "Upload complete.";
-                //MessageBox.Show("Upload succeeded");
             }
             catch (Exception crap)
             {
                 results_label.Text = "Upload failed:\n" + crap;
-                //MessageBox.Show("Upload failed:\n" + crap);
             }
         }
 
@@ -87,7 +85,6 @@ namespace Converter
                                 //table.Columns["cn_SpacesAvailable"].ColumnName    = "availableSpace";    // use rooms not "spaces"
                                 table.Columns["cn_SumRoomsAvailable"].ColumnName    = "availableSpace"; 
 
-                                //string path = Directory.GetParent(Directory.GetCurrentDirectory().ToString()).ToString() + "\\writefiles\\";
                                 Directory.CreateDirectory(path);
                                 bool JSONsuccess = ex.ToJson(path, table);
 

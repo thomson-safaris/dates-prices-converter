@@ -48,7 +48,7 @@
             this.convert_button.Name = "convert_button";
             this.convert_button.Size = new System.Drawing.Size(227, 38);
             this.convert_button.TabIndex = 1;
-            this.convert_button.Text = "Convert dates and prices to website format!";
+            this.convert_button.Text = "Convert dates and prices to website format";
             this.convert_button.UseVisualStyleBackColor = true;
             // 
             // results_label
@@ -67,7 +67,7 @@
             this.treks_upload_button.Name = "treks_upload_button";
             this.treks_upload_button.Size = new System.Drawing.Size(227, 34);
             this.treks_upload_button.TabIndex = 3;
-            this.treks_upload_button.Text = "Upload dates to thomsontreks.com";
+            this.treks_upload_button.Text = "Upload dates to thomsontreks.com (convert with the above button first)";
             this.treks_upload_button.UseVisualStyleBackColor = true;
             // 
             // MainForm

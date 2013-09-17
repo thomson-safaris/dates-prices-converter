@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-//using System.Threading.Tasks;
 using WinSCP;
 using System.Data;
 using System.Text.RegularExpressions;
@@ -18,9 +17,9 @@ namespace Converter
         SessionOptions sessionOptions = new SessionOptions
         {
             Protocol = Protocol.Ftp,
-            HostName = "staging.thomsontreks.com",
-            UserName = "stagingftp",
-            Password = "hnt11a218",
+            HostName = "166.78.253.109",
+            UserName = "treks",
+            Password = "htn04?qdx",
             PortNumber = 21
         };
 
