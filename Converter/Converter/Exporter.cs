@@ -319,7 +319,7 @@ namespace Converter
                 {
                     trip_code = trip_code.Substring(0, 14);
                 }
-                links_note = get_custom_links(trip_code);
+                links_note = get_custom_notes(trip_code);
                 if ((note != "") && (links_note != ""))
                 {
                     note += ". " + links_note;
@@ -340,9 +340,9 @@ namespace Converter
         }
 
 
-        private string get_custom_links(string trip_code)
+        private string get_custom_notes(string trip_code)
         {
-            string path = configuration_path + "custom_links.csv";
+            string path = configuration_path + "custom_notes.csv";
             DataTable table = new DataTable();
             try
             {
@@ -356,7 +356,14 @@ namespace Converter
                     {
                         if (r["Trip Name"].ToString() == trip_code)
                         {
-                            return @"<a href='" + r["Link"].ToString() + @"'>" + r["Link Text"].ToString() + @"</a>";
+                            if (r["Link"].ToString() != "")
+                            {
+                                return @"<a href='" + r["Link"].ToString() + @"'>" + r["Link Text"].ToString() + @"</a>";
+                            }
+                            else
+                            {
+                                return @"<strong>" + r["Link Text"].ToString() + @"</strong>";
+                            }
                         }
                     }
                 }
