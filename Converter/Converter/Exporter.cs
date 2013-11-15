@@ -114,9 +114,14 @@ namespace Converter
             int soldOut, start_season_comp, tempPriceToAdd;
             int i = 0;
             StringBuilder sb_json = new StringBuilder("{");
-            StringBuilder sb_csv = new StringBuilder("Depart,Return from Trek Only,Return from Trek +5-Day Safari,Return from Trek +7-Day Safari,Notes\r\n");
+            StringBuilder sb_csv = new StringBuilder(",,Return from Trek,,\r\n");
             DateTime current_time = DateTime.Now;
             var last_trip_year = current_time.Year;
+            sb_csv.Append("<span class=\"dates-thead\">Depart</span>,");
+            sb_csv.Append("<span class=\"dates-thead\">Trek Only</span>,");
+            sb_csv.Append("<span class=\"dates-thead\">+ 5-Day Safari</span>,");
+            sb_csv.Append("<span class=\"dates-thead\">+ 7-Day Safari</span>,");
+            sb_csv.Append("<span class=\"dates-thead\">Notes</span>\r\n");
             sb_csv.Append(",,<span class=\"table-year\">" + last_trip_year.ToString() + "</span>,,\r\n");
 
             bool thomsontreks_export = false;
@@ -172,10 +177,22 @@ namespace Converter
                     // Don't show trips past today's date
                     if (DateTime.Compare(start_date_date, current_time) > 0)
                     {
-                        sb_csv.Append(start_date_date.ToString("MMM d") + ",");
-                        sb_csv.Append(get_end_date(row, daysToAdd).ToString("MMM d") + ",");
-                        sb_csv.Append(get_end_date(row, daysToAdd + 5).ToString("MMM d") + ",");
-                        sb_csv.Append(get_end_date(row, daysToAdd + 7).ToString("MMM d") + ",");
+                        sb_csv.Append(start_date_date.ToString("MMM d") + "<br/>,");
+
+                        sb_csv.Append("\"" + get_end_date(row, daysToAdd).ToString("MMM d") + "<br/>" + "$" +  adult_price + "\",");
+                        
+                        sb_csv.Append("\"" + get_end_date(row, daysToAdd + 5).ToString("MMM d") + "<br/>");
+                        if (start_season_comp >= 0)
+                            sb_csv.Append("$" + get_adult_price(row, 2990) + "\",");
+                        else
+                            sb_csv.Append("$" + get_adult_price(row, 3090) + "\",");
+
+                        sb_csv.Append("\"" + get_end_date(row, daysToAdd + 7).ToString("MMM d") + "<br/>");
+                        if (start_season_comp >= 0)
+                            sb_csv.Append("$" + get_adult_price(row, 3990) + "\",");
+                        else
+                            sb_csv.Append("$" + get_adult_price(row, 4090) + "\",");
+                        
                         sb_csv.Append(notes + "\r\n");
 
                         last_trip_year = start_date_date.Year;
