@@ -93,6 +93,7 @@ namespace Converter
                 process_table("SFS", 0, 0, path + @"\short_family.txt");
                 process_table("TAS", 0, 0, path + @"\active_teens.txt");
                 process_table("WWS", 0, 0, path + @"\women_women_women.txt");
+                process_table("HTS", 0, 0, path + @"\highlights-tz.txt");
                 process_table("KILI UM", 0, 0, path + @"\kili-umbwe.csv");
                 process_table("KILI LE", 0, 0, path + @"\kili-western.csv");
                 process_table("KILI GT", 0, 0, path + @"\kili-gt.csv");
