@@ -17,9 +17,12 @@ namespace Converter
         SessionOptions sessionOptions = new SessionOptions
         {
             Protocol = Protocol.Ftp,
-            HostName = "192.237.253.205",
-            UserName = "varftp",
-            Password = "fjo0H#$Fnvo0w34hj",
+            //HostName = "192.237.253.205",
+            //UserName = "varftp",
+            //Password = "fjo0H#$Fnvo0w34hj",
+            HostName = "23.253.161.111",
+            UserName = "var-www",
+            Password = "gjiouregvmt347iy5vn",
             PortNumber = 21
         };
 
