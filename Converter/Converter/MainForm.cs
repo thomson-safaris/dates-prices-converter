@@ -17,7 +17,7 @@ namespace Converter
         string path = Directory.GetParent(Directory.GetCurrentDirectory().ToString()).ToString() + "\\writefiles\\";
         private Exporter ex = new Exporter(configuration_path);
         private FTPMgr ftp = new FTPMgr();
-        private string remote_treks_directory = "treks-website/wp-content/uploads/";
+        private string remote_treks_directory = "thomsontreks/wp-content/uploads/";
 
         public MainForm()
         {
