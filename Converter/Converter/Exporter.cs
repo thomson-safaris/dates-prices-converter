@@ -336,6 +336,7 @@ namespace Converter
                 if (trip_code.Substring(0, 4) == "KILI")
                 {
                     trip_code = trip_code.Substring(0, 14);
+                    Console.WriteLine(trip_code);
                 }
                 links_note = get_custom_notes(trip_code);
                 if ((note != "") && (links_note != ""))
@@ -372,7 +373,7 @@ namespace Converter
                     table = parser.GetDataTable();
                     foreach (DataRow r in table.Rows)
                     {
-                        if (r["Trip Name"].ToString() == trip_code)
+                        if ((r["Trip Name"].ToString().Length >=14) && (r["Trip Name"].ToString().Substring(0,14) == trip_code))
                         {
                             if (r["Link"].ToString() != "")
                             {
